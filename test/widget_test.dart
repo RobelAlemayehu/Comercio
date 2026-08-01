@@ -5,7 +5,7 @@ import 'package:comercio/app/app.dart';
 import 'package:comercio/core/storage/local_storage.dart';
 
 void main() {
-  testWidgets('App renders base foundation', (WidgetTester tester) async {
+  testWidgets('App renders LoginScreen when unauthenticated', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
     final sharedPreferences = await SharedPreferences.getInstance();
 
@@ -18,6 +18,8 @@ void main() {
       ),
     );
 
-    expect(find.text('Comercio Base Foundation Ready'), findsOneWidget);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Sign in to access your e-commerce dashboard'), findsOneWidget);
   });
 }
