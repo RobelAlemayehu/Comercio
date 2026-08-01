@@ -1,14 +1,18 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../constants/api_constants.dart';
-import '../errors/failure.dart';
+import '../storage/local_storage.dart';
+import 'api_client.dart';
+import 'api_endpoints.dart';
+import 'auth_interceptor.dart';
+import 'logging_interceptor.dart';
 
 final dioProvider = Provider<Dio>((ref) {
+  final storageService = ref.watch(localStorageServiceProvider);
   final dio = Dio(
     BaseOptions(
-      baseUrl: ApiConstants.baseUrl,
-      connectTimeout: ApiConstants.connectTimeout,
-      receiveTimeout: ApiConstants.receiveTimeout,
+      baseUrl: ApiEndpoints.baseUrl,
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
       headers: const {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -16,46 +20,15 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  dio.interceptors.add(
-    LogInterceptor(
-      requestHeader: true,
-      requestBody: true,
-      responseHeader: false,
-      responseBody: true,
-      error: true,
-    ),
-  );
+  dio.interceptors.addAll([
+    AuthInterceptor(storageService),
+    AppLoggingInterceptor(),
+  ]);
 
   return dio;
 });
 
-Failure handleDioError(DioException error) {
-  switch (error.type) {
-    case DioExceptionType.connectionTimeout:
-    case DioExceptionType.sendTimeout:
-    case DioExceptionType.receiveTimeout:
-    case DioExceptionType.connectionError:
-      return const NetworkFailure();
-    case DioExceptionType.badResponse:
-      final statusCode = error.response?.statusCode;
-      final responseData = error.response?.data;
-      String message = 'Server returned code $statusCode';
-
-      if (responseData is Map && responseData.containsKey('message')) {
-        message = responseData['message'].toString();
-      } else if (error.response?.statusMessage != null) {
-        message = error.response!.statusMessage!;
-      }
-
-      if (statusCode == 401 || statusCode == 403) {
-        return AuthFailure(message: message, statusCode: statusCode);
-      }
-      return ServerFailure(message: message, statusCode: statusCode);
-    case DioExceptionType.cancel:
-      return const ServerFailure(message: 'Request was cancelled');
-    default:
-      return UnexpectedFailure(
-        message: error.message ?? 'An unknown network error occurred.',
-      );
-  }
-}
+final apiClientProvider = Provider<ApiClient>((ref) {
+  final dio = ref.watch(dioProvider);
+  return DioApiClient(dio);
+});
