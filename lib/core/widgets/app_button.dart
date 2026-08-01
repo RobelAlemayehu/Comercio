@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_radius.dart';
+import '../theme/app_spacing.dart';
 
 enum AppButtonVariant { primary, secondary, outline }
 
@@ -61,7 +63,7 @@ class AppButton extends StatelessWidget {
           side: borderSide,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.borderMd,
           ),
         ),
         onPressed: isLoading ? null : onPressed,
@@ -80,7 +82,7 @@ class AppButton extends StatelessWidget {
                 children: [
                   if (icon != null) ...[
                     Icon(icon, size: 20),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.xs),
                   ],
                   Text(
                     text,
