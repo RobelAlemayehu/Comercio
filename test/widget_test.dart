@@ -5,7 +5,7 @@ import 'package:comercio/app/app.dart';
 import 'package:comercio/core/storage/local_storage.dart';
 
 void main() {
-  testWidgets('App renders LoginScreen when unauthenticated', (WidgetTester tester) async {
+  testWidgets('Unauthenticated user sees Login screen', (WidgetTester tester) async {
     SharedPreferences.setMockInitialValues({});
     final sharedPreferences = await SharedPreferences.getInstance();
 
