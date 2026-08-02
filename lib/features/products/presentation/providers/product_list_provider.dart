@@ -57,7 +57,7 @@ class ProductListNotifier extends StateNotifier<AsyncValue<List<ProductModel>>> 
   }
 }
 
-// ─── Category Providers ────────────────────────────────────────────────────────
+// ─── Category & Search Providers ──────────────────────────────────────────────
 
 /// Provider for fetching categories list
 final categoriesProvider = FutureProvider<List<String>>((ref) async {
@@ -74,17 +74,25 @@ final categoriesProvider = FutureProvider<List<String>>((ref) async {
 /// Holds currently selected category. Null represents "All" (no filter).
 final selectedCategoryProvider = StateProvider<String?>((ref) => null);
 
-/// Provides filtered products based on currently selected category.
+/// Holds current product search query string.
+final searchQueryProvider = StateProvider<String>((ref) => '');
+
+/// Provides filtered products based on currently selected category and search query.
 final filteredProductsProvider = Provider<AsyncValue<List<ProductModel>>>((ref) {
   final productsAsync = ref.watch(productListProvider);
   final selectedCategory = ref.watch(selectedCategoryProvider);
+  final searchQuery = ref.watch(searchQueryProvider).trim().toLowerCase();
 
   return productsAsync.whenData((products) {
-    if (selectedCategory == null || selectedCategory.isEmpty) {
-      return products;
-    }
-    return products
-        .where((p) => p.category.toLowerCase() == selectedCategory.toLowerCase())
-        .toList();
+    return products.where((p) {
+      final matchesCategory = selectedCategory == null ||
+          selectedCategory.isEmpty ||
+          p.category.toLowerCase() == selectedCategory.toLowerCase();
+
+      final matchesSearch = searchQuery.isEmpty ||
+          p.title.toLowerCase().contains(searchQuery);
+
+      return matchesCategory && matchesSearch;
+    }).toList();
   });
 });
