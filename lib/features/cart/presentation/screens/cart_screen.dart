@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/animated_widgets.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/cart_item_card.dart';
@@ -93,9 +94,12 @@ class CartScreen extends ConsumerWidget {
                         const SizedBox(height: AppSpacing.sm),
                     itemBuilder: (context, index) {
                       final item = cartItems[index];
-                      return CartItemCard(
-                        key: ValueKey(item.product.id),
-                        cartItem: item,
+                      return FadeSlideIn(
+                        delay: Duration(milliseconds: (index * 50).clamp(0, 300)),
+                        child: CartItemCard(
+                          key: ValueKey(item.product.id),
+                          cartItem: item,
+                        ),
                       );
                     },
                   ),
@@ -216,27 +220,11 @@ class CartScreen extends ConsumerWidget {
                           text: 'Proceed to Checkout',
                           variant: AppButtonVariant.primary,
                           onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                behavior: SnackBarBehavior.floating,
-                                margin: const EdgeInsets.all(AppSpacing.md),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: AppRadius.borderMd,
-                                ),
-                                backgroundColor: AppColors.success,
-                                content: const Row(
-                                  children: [
-                                    Icon(
-                                      Icons.check_circle_outline_rounded,
-                                      color: Colors.white,
-                                    ),
-                                    SizedBox(width: AppSpacing.xs),
-                                    Text('Order placed successfully!'),
-                                  ],
-                                ),
-                              ),
-                            );
                             ref.read(cartNotifierProvider.notifier).emptyCart();
+                            AppSnackbar.success(
+                              context,
+                              'Order placed successfully! 🎉',
+                            );
                           },
                         ),
                       ],

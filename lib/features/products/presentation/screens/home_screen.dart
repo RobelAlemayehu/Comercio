@@ -4,9 +4,12 @@ import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/animated_widgets.dart';
+import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_state_widget.dart';
-import '../../../../core/widgets/loading_widget.dart';
+import '../../../../core/widgets/shimmer_widgets.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import '../providers/product_list_provider.dart';
@@ -20,10 +23,11 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final filteredProductState = ref.watch(filteredProductsProvider);
+    final productListState = ref.watch(productListProvider);
     final selectedCategory = ref.watch(selectedCategoryProvider);
     final searchQuery = ref.watch(searchQueryProvider);
-    final theme = Theme.of(context);
     final width = MediaQuery.of(context).size.width;
+    final theme = Theme.of(context);
 
     int crossAxisCount = 2;
     if (width > 900) {
@@ -34,6 +38,7 @@ class HomeScreen extends ConsumerWidget {
 
     final isSearching = searchQuery.trim().isNotEmpty;
     final isFilteringCategory = selectedCategory != null;
+    final isLoadingProducts = productListState is AsyncLoading;
 
     return Scaffold(
       appBar: AppBar(
@@ -63,16 +68,12 @@ class HomeScreen extends ConsumerWidget {
               },
             ),
             tooltip: 'Shopping Cart',
-            onPressed: () {
-              context.push(AppRoutes.cart);
-            },
+            onPressed: () => context.push(AppRoutes.cart),
           ),
           IconButton(
             icon: const Icon(Icons.person_outline_rounded),
             tooltip: 'Profile',
-            onPressed: () {
-              context.push(AppRoutes.profile);
-            },
+            onPressed: () => context.push(AppRoutes.profile),
           ),
           IconButton(
             icon: const Icon(Icons.logout_rounded),
@@ -86,25 +87,33 @@ class HomeScreen extends ConsumerWidget {
       body: Column(
         children: [
           const SizedBox(height: AppSpacing.xs),
-          // Search Bar
           const ProductSearchBar(),
           const SizedBox(height: AppSpacing.xs),
-          // Horizontal Category Chips
-          const CategorySelector(),
+
+          // Category chips — skeleton while products are loading
+          AnimatedContent(
+            child: isLoadingProducts
+                ? const CategoryChipsSkeleton()
+                : const CategorySelector(),
+          ),
           const SizedBox(height: AppSpacing.xs),
-          // Product Grid with smooth transition & empty state handling
+
           Expanded(
             child: filteredProductState.when(
-              loading: () => const LoadingWidget(
-                message: 'Loading products...',
-              ),
-              error: (error, stackTrace) => ErrorStateWidget(
-                message: error.toString(),
-                onRetry: () {
-                  ref.read(productListProvider.notifier).fetchProducts();
-                  ref.invalidate(categoriesProvider);
-                },
-              ),
+              loading: () => ProductGridSkeleton(crossAxisCount: crossAxisCount),
+              error: (error, stackTrace) {
+                final isNetworkError = error.toString().toLowerCase().contains('socket') ||
+                    error.toString().toLowerCase().contains('network') ||
+                    error.toString().toLowerCase().contains('connection');
+                return ErrorStateWidget(
+                  message: error.toString(),
+                  type: isNetworkError ? ErrorStateType.network : ErrorStateType.generic,
+                  onRetry: () {
+                    ref.read(productListProvider.notifier).fetchProducts();
+                    ref.invalidate(categoriesProvider);
+                  },
+                );
+              },
               data: (products) {
                 if (products.isEmpty) {
                   String emptyTitle = 'No Products Available';
@@ -124,6 +133,7 @@ class HomeScreen extends ConsumerWidget {
                   }
 
                   return RefreshIndicator(
+                    color: AppColors.secondary,
                     onRefresh: () async {
                       await ref.read(productListProvider.notifier).refresh();
                       ref.invalidate(categoriesProvider);
@@ -136,25 +146,23 @@ class HomeScreen extends ConsumerWidget {
                           child: EmptyStateWidget(
                             title: emptyTitle,
                             message: emptyMessage,
-                            icon: isSearching ? Icons.search_off_rounded : Icons.inventory_2_outlined,
+                            icon: isSearching
+                                ? Icons.search_off_rounded
+                                : Icons.inventory_2_outlined,
                             action: (isSearching || isFilteringCategory)
-                                ? OutlinedButton.icon(
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: AppColors.secondary,
-                                      side: const BorderSide(color: AppColors.secondary),
-                                    ),
+                                ? AppButton(
+                                    text: isSearching && isFilteringCategory
+                                        ? 'Clear All Filters'
+                                        : isSearching
+                                            ? 'Clear Search'
+                                            : 'Clear Category Filter',
+                                    icon: Icons.filter_alt_off_rounded,
+                                    variant: AppButtonVariant.outline,
+                                    width: 200,
                                     onPressed: () {
                                       ref.read(searchQueryProvider.notifier).state = '';
                                       ref.read(selectedCategoryProvider.notifier).state = null;
                                     },
-                                    icon: const Icon(Icons.refresh_rounded, size: 16),
-                                    label: Text(
-                                      isSearching && isFilteringCategory
-                                          ? 'Clear All Filters'
-                                          : isSearching
-                                              ? 'Clear Search'
-                                              : 'Clear Category Filter',
-                                    ),
                                   )
                                 : null,
                           ),
@@ -165,9 +173,13 @@ class HomeScreen extends ConsumerWidget {
                 }
 
                 return RefreshIndicator(
+                  color: AppColors.secondary,
                   onRefresh: () async {
                     await ref.read(productListProvider.notifier).refresh();
                     ref.invalidate(categoriesProvider);
+                    if (context.mounted) {
+                      AppSnackbar.success(context, 'Products refreshed!');
+                    }
                   },
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
@@ -186,11 +198,14 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       itemBuilder: (context, index) {
                         final product = products[index];
-                        return ProductCard(
-                          product: product,
-                          onTap: () {
-                            context.push(AppRoutes.productDetail(product.id));
-                          },
+                        return FadeSlideIn(
+                          delay: Duration(milliseconds: (index * 40).clamp(0, 400)),
+                          child: ProductCard(
+                            product: product,
+                            onTap: () {
+                              context.push(AppRoutes.productDetail(product.id));
+                            },
+                          ),
                         );
                       },
                     ),
