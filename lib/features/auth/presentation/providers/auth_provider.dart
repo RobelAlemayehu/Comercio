@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/repositories/base_repository.dart';
 import '../../../../core/storage/local_storage.dart';
+import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -20,13 +21,17 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 
 final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
-  return AuthNotifier(authRepository);
+  final localStorage = ref.watch(localStorageServiceProvider);
+  return AuthNotifier(authRepository, localStorage, ref);
 });
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _authRepository;
+  final LocalStorageService _localStorage;
+  final Ref _ref;
 
-  AuthNotifier(this._authRepository) : super(const AuthState()) {
+  AuthNotifier(this._authRepository, this._localStorage, this._ref)
+      : super(const AuthState()) {
     checkAuthStatus();
   }
 
@@ -71,6 +76,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   Future<void> logout() async {
     await _authRepository.logout();
+    await _localStorage.clearCartData();
+    _ref.read(cartNotifierProvider.notifier).emptyCart();
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 }

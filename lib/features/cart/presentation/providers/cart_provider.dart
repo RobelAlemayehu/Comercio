@@ -1,14 +1,42 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/storage/local_storage.dart';
 import '../../data/models/cart_item_model.dart';
 import '../../../products/data/models/product_model.dart';
 
 final cartNotifierProvider =
     StateNotifierProvider<CartNotifier, List<CartItemModel>>((ref) {
-  return CartNotifier();
+  final storageService = ref.watch(localStorageServiceProvider);
+  return CartNotifier(storageService);
 });
 
 class CartNotifier extends StateNotifier<List<CartItemModel>> {
-  CartNotifier() : super([]);
+  final LocalStorageService _storageService;
+
+  CartNotifier(this._storageService) : super([]) {
+    _loadCart();
+  }
+
+  void _loadCart() {
+    try {
+      final cartJson = _storageService.getCartData();
+      if (cartJson != null && cartJson.isNotEmpty) {
+        final List<dynamic> list = jsonDecode(cartJson);
+        state = list
+            .map((item) => CartItemModel.fromJson(item as Map<String, dynamic>))
+            .toList();
+      }
+    } catch (_) {
+      state = [];
+    }
+  }
+
+  Future<void> _saveCart() async {
+    try {
+      final jsonList = state.map((item) => item.toJson()).toList();
+      await _storageService.saveCartData(jsonEncode(jsonList));
+    } catch (_) {}
+  }
 
   /// Add item to cart or increment quantity if already present
   void addItem(ProductModel product, {int quantity = 1}) {
@@ -27,11 +55,13 @@ class CartNotifier extends StateNotifier<List<CartItemModel>> {
         CartItemModel(product: product, quantity: quantity),
       ];
     }
+    _saveCart();
   }
 
   /// Remove item completely from cart
   void removeItem(int productId) {
     state = state.where((item) => item.product.id != productId).toList();
+    _saveCart();
   }
 
   /// Increase quantity of product by 1
@@ -44,6 +74,7 @@ class CartNotifier extends StateNotifier<List<CartItemModel>> {
         quantity: existingItem.quantity + 1,
       );
       state = updatedList;
+      _saveCart();
     }
   }
 
@@ -58,15 +89,17 @@ class CartNotifier extends StateNotifier<List<CartItemModel>> {
           quantity: existingItem.quantity - 1,
         );
         state = updatedList;
+        _saveCart();
       } else {
         removeItem(productId);
       }
     }
   }
 
-  /// Clear/empty all items from cart
+  /// Clear/empty all items from cart and storage
   void emptyCart() {
     state = [];
+    _storageService.clearCartData();
   }
 }
 

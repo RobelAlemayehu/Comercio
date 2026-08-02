@@ -32,6 +32,19 @@ class LocalStorageService {
     return await _prefs.remove(_authTokenKey);
   }
 
+  // Cart management
+  Future<bool> saveCartData(String cartJson) async {
+    return await _prefs.setString(_cartDataKey, cartJson);
+  }
+
+  String? getCartData() {
+    return _prefs.getString(_cartDataKey);
+  }
+
+  Future<bool> clearCartData() async {
+    return await _prefs.remove(_cartDataKey);
+  }
+
   // Generic key-value storage
   Future<bool> saveString(String key, String value) async {
     return await _prefs.setString(key, value);
