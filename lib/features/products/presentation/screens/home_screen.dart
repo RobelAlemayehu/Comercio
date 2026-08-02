@@ -68,6 +68,13 @@ class HomeScreen extends ConsumerWidget {
             },
           ),
           IconButton(
+            icon: const Icon(Icons.person_outline_rounded),
+            tooltip: 'Profile',
+            onPressed: () {
+              context.push(AppRoutes.profile);
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.logout_rounded),
             tooltip: 'Logout',
             onPressed: () {
