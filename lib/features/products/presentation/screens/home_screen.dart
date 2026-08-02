@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/loading_widget.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../../app/router/app_router.dart';
 import '../providers/product_list_provider.dart';
 import '../widgets/product_card.dart';
 
@@ -92,12 +94,7 @@ class HomeScreen extends ConsumerWidget {
                 return ProductCard(
                   product: product,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Selected product: ${product.title}'),
-                        duration: const Duration(seconds: 1),
-                      ),
-                    );
+                    context.push(AppRoutes.productDetail(product.id));
                   },
                 );
               },
@@ -108,3 +105,4 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 }
+

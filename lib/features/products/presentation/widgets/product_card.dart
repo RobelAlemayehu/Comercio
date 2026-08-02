@@ -40,20 +40,23 @@ class ProductCard extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(AppSpacing.md),
                 color: isDark ? const Color(0xFF0F172A) : Colors.white,
-                child: CachedNetworkImage(
-                  imageUrl: product.image,
-                  fit: BoxFit.contain,
-                  placeholder: (context, url) => const Center(
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                child: Hero(
+                  tag: 'product-image-${product.id}',
+                  child: CachedNetworkImage(
+                    imageUrl: product.image,
+                    fit: BoxFit.contain,
+                    placeholder: (context, url) => const Center(
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
                     ),
-                  ),
-                  errorWidget: (context, url, error) => const Icon(
-                    Icons.broken_image_outlined,
-                    size: 40,
-                    color: AppColors.textSecondaryLight,
+                    errorWidget: (context, url, error) => const Icon(
+                      Icons.broken_image_outlined,
+                      size: 40,
+                      color: AppColors.textSecondaryLight,
+                    ),
                   ),
                 ),
               ),

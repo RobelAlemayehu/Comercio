@@ -28,13 +28,13 @@ abstract class AppTheme {
       appBarTheme: AppBarTheme(
         elevation: 0,
         centerTitle: true,
-        backgroundColor: AppColors.backgroundLight,
-        scrolledUnderElevation: 0.5,
-        iconTheme: const IconThemeData(color: AppColors.textPrimaryLight),
+        backgroundColor: AppColors.primary,
+        scrolledUnderElevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         titleTextStyle: GoogleFonts.outfit(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          color: AppColors.textPrimaryLight,
+          color: Colors.white,
         ),
       ),
       cardTheme: CardThemeData(
@@ -126,7 +126,7 @@ abstract class AppTheme {
         space: 1,
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.primary,
+        color: AppColors.secondary,
       ),
     );
   }
@@ -136,12 +136,12 @@ abstract class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: const ColorScheme.dark(
-        primary: AppColors.primaryLight,
+        primary: AppColors.secondaryLight, // Gold as primary accent in dark
         secondary: AppColors.secondary,
         surface: AppColors.surfaceDark,
         error: AppColors.error,
-        onPrimary: Colors.white,
-        onSecondary: Colors.white,
+        onPrimary: AppColors.primaryDark,
+        onSecondary: AppColors.primaryDark,
         onSurface: AppColors.textPrimaryDark,
         onError: AppColors.onError,
       ),
@@ -153,13 +153,13 @@ abstract class AppTheme {
       appBarTheme: AppBarTheme(
         elevation: 0,
         centerTitle: true,
-        backgroundColor: AppColors.backgroundDark,
-        scrolledUnderElevation: 0.5,
-        iconTheme: const IconThemeData(color: AppColors.textPrimaryDark),
+        backgroundColor: AppColors.primaryDark,
+        scrolledUnderElevation: 0,
+        iconTheme: const IconThemeData(color: AppColors.secondaryLight),
         titleTextStyle: GoogleFonts.outfit(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          color: AppColors.textPrimaryDark,
+          color: AppColors.secondaryLight,
         ),
       ),
       cardTheme: CardThemeData(
@@ -187,7 +187,7 @@ abstract class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppRadius.borderMd,
-          borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.secondaryLight, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: AppRadius.borderMd,
@@ -196,7 +196,7 @@ abstract class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryLight,
+          backgroundColor: AppColors.secondary,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(
@@ -214,8 +214,8 @@ abstract class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primaryLight,
-          side: const BorderSide(color: AppColors.primaryLight, width: 1.5),
+          foregroundColor: AppColors.secondaryLight,
+          side: const BorderSide(color: AppColors.secondaryLight, width: 1.5),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
             vertical: AppSpacing.sm + 2,
@@ -231,7 +231,7 @@ abstract class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.primaryLight,
+          foregroundColor: AppColors.secondaryLight,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
             vertical: AppSpacing.xs,
@@ -251,7 +251,7 @@ abstract class AppTheme {
         space: 1,
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: AppColors.primaryLight,
+        color: AppColors.secondaryLight,
       ),
     );
   }
