@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/shimmer_widgets.dart';
 import '../providers/product_list_provider.dart';
 
 class CategorySelector extends ConsumerWidget {
@@ -110,22 +111,7 @@ class CategorySelector extends ConsumerWidget {
         SizedBox(
           height: 44,
           child: categoriesAsync.when(
-            loading: () => ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-              scrollDirection: Axis.horizontal,
-              itemCount: 5,
-              separatorBuilder: (context, index) =>
-                  const SizedBox(width: AppSpacing.xs),
-              itemBuilder: (context, index) => Container(
-                width: index == 0 ? 60 : 100,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.shimmerBaseDark
-                      : AppColors.shimmerBaseLight,
-                  borderRadius: AppRadius.borderLg,
-                ),
-              ),
-            ),
+            loading: () => const CategoryChipsSkeleton(),
             error: (error, _) => Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Row(

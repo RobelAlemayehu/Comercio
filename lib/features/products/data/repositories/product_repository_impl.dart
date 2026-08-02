@@ -14,6 +14,11 @@ class ProductRepositoryImpl extends BaseRepository implements ProductRepository 
   }
 
   @override
+  Future<Result<ProductModel>> getProduct(int id) async {
+    return safeApiCall(() => _remoteDataSource.getProduct(id));
+  }
+
+  @override
   Future<Result<List<String>>> getCategories() async {
     return safeApiCall(() => _remoteDataSource.getCategories());
   }

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/shimmer_widgets.dart';
 import '../../data/models/cart_item_model.dart';
 import '../providers/cart_provider.dart';
 
@@ -41,12 +42,9 @@ class CartItemCard extends ConsumerWidget {
             child: CachedNetworkImage(
               imageUrl: product.image,
               fit: BoxFit.contain,
-              placeholder: (context, url) => const Center(
-                child: SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
+              placeholder: (context, url) => const ShimmerBox(
+                width: double.infinity,
+                height: double.infinity,
               ),
               errorWidget: (context, url, error) => const Icon(
                 Icons.broken_image_outlined,

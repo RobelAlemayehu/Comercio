@@ -22,6 +22,17 @@ sealed class Result<T> {
 
   T? get dataOrNull => (this is Success<T>) ? (this as Success<T>).data : null;
   Failure? get failureOrNull => (this is Error<T>) ? (this as Error<T>).failure : null;
+
+  R when<R>({
+    required R Function(T data) success,
+    required R Function(Failure failure) failure,
+  }) {
+    if (this is Success<T>) {
+      return success((this as Success<T>).data);
+    } else {
+      return failure((this as Error<T>).failure);
+    }
+  }
 }
 
 class Success<T> extends Result<T> {

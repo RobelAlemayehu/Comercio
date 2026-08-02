@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/dio_client.dart';
-import '../../../../core/repositories/base_repository.dart';
 import '../../data/datasources/product_remote_data_source.dart';
 import '../../data/models/product_model.dart';
 import '../../data/repositories/product_repository_impl.dart';
@@ -31,29 +30,15 @@ class ProductListNotifier extends StateNotifier<AsyncValue<List<ProductModel>>> 
 
   Future<void> fetchProducts() async {
     state = const AsyncValue.loading();
-    final result = await _repository.getProducts();
-
-    if (result is Success<List<ProductModel>>) {
-      state = AsyncValue.data(result.data);
-    } else if (result is Error<List<ProductModel>>) {
-      state = AsyncValue.error(
-        result.failure.message,
-        StackTrace.current,
-      );
-    }
+    await refresh();
   }
 
   Future<void> refresh() async {
     final result = await _repository.getProducts();
-
-    if (result is Success<List<ProductModel>>) {
-      state = AsyncValue.data(result.data);
-    } else if (result is Error<List<ProductModel>>) {
-      state = AsyncValue.error(
-        result.failure.message,
-        StackTrace.current,
-      );
-    }
+    state = result.when(
+      success: (products) => AsyncValue.data(products),
+      failure: (failure) => AsyncValue.error(failure.message, StackTrace.current),
+    );
   }
 }
 
@@ -63,12 +48,10 @@ class ProductListNotifier extends StateNotifier<AsyncValue<List<ProductModel>>> 
 final categoriesProvider = FutureProvider<List<String>>((ref) async {
   final repository = ref.watch(productRepositoryProvider);
   final result = await repository.getCategories();
-  if (result is Success<List<String>>) {
-    return result.data;
-  } else if (result is Error<List<String>>) {
-    throw Exception(result.failure.message);
-  }
-  return [];
+  return result.when(
+    success: (categories) => categories,
+    failure: (failure) => throw Exception(failure.message),
+  );
 });
 
 /// Holds currently selected category. Null represents "All" (no filter).

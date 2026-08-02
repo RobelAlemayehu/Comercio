@@ -8,6 +8,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/app_snackbar.dart';
+import '../../../../core/widgets/error_state_widget.dart';
+import '../../../../core/widgets/shimmer_widgets.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../data/models/product_model.dart';
 import '../providers/product_detail_provider.dart';
@@ -61,27 +64,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
   void _handleAddToCart(ProductModel product) {
     ref.read(cartNotifierProvider.notifier).addItem(product, quantity: _quantity);
     setState(() => _addedToCart = true);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(AppSpacing.md),
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.borderMd),
-        backgroundColor: AppColors.primary,
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle_rounded,
-                color: AppColors.secondary, size: 20),
-            const SizedBox(width: AppSpacing.xs),
-            Expanded(
-              child: Text(
-                '${product.title.split(' ').take(3).join(' ')}… added to cart',
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        ),
-        duration: const Duration(seconds: 2),
-      ),
+    AppSnackbar.success(
+      context,
+      '${product.title.split(' ').take(3).join(' ')}… added to cart',
     );
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) setState(() => _addedToCart = false);
@@ -99,7 +84,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
       backgroundColor:
           isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       body: productAsync.when(
-        loading: () => _buildSkeleton(isDark),
+        loading: () => _buildSkeleton(),
         error: (e, _) => _buildError(e.toString()),
         data: (product) {
           if (product == null) return _buildError('Product not found.');
@@ -111,42 +96,30 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
 
   // ─── Skeleton loading ────────────────────────────────────────────────────────
 
-  Widget _buildSkeleton(bool isDark) {
-    final base =
-        isDark ? AppColors.shimmerBaseDark : AppColors.shimmerBaseLight;
-    final highlight =
-        isDark ? AppColors.shimmerHighlightDark : AppColors.shimmerHighlightLight;
-
+  Widget _buildSkeleton() {
     return Column(
       children: [
         // Image skeleton
-        _Shimmer(width: double.infinity, height: 360, base: base, highlight: highlight),
+        const ShimmerBox(width: double.infinity, height: 360),
         const SizedBox(height: AppSpacing.lg),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _Shimmer(width: 100, height: 24, base: base, highlight: highlight,
-                  radius: AppRadius.borderSm),
+              const ShimmerBox(width: 100, height: 24),
               const SizedBox(height: AppSpacing.sm),
-              _Shimmer(width: double.infinity, height: 28, base: base, highlight: highlight,
-                  radius: AppRadius.borderSm),
+              const ShimmerBox(width: double.infinity, height: 28),
               const SizedBox(height: AppSpacing.xs),
-              _Shimmer(width: 200, height: 28, base: base, highlight: highlight,
-                  radius: AppRadius.borderSm),
+              const ShimmerBox(width: 200, height: 28),
               const SizedBox(height: AppSpacing.md),
-              _Shimmer(width: 120, height: 20, base: base, highlight: highlight,
-                  radius: AppRadius.borderSm),
+              const ShimmerBox(width: 120, height: 20),
               const SizedBox(height: AppSpacing.lg),
-              _Shimmer(width: double.infinity, height: 16, base: base, highlight: highlight,
-                  radius: AppRadius.borderSm),
+              const ShimmerBox(width: double.infinity, height: 16),
               const SizedBox(height: AppSpacing.xs),
-              _Shimmer(width: double.infinity, height: 16, base: base, highlight: highlight,
-                  radius: AppRadius.borderSm),
+              const ShimmerBox(width: double.infinity, height: 16),
               const SizedBox(height: AppSpacing.xs),
-              _Shimmer(width: 240, height: 16, base: base, highlight: highlight,
-                  radius: AppRadius.borderSm),
+              const ShimmerBox(width: 240, height: 16),
             ],
           ),
         ),
@@ -157,28 +130,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
   // ─── Error state ──────────────────────────────────────────────────────────────
 
   Widget _buildError(String message) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline_rounded,
-                size: 64, color: AppColors.error),
-            const SizedBox(height: AppSpacing.md),
-            Text(message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.textSecondaryLight)),
-            const SizedBox(height: AppSpacing.lg),
-            AppButton(
-              text: 'Go Back',
-              onPressed: () => context.pop(),
-              variant: AppButtonVariant.outline,
-              width: 140,
-            ),
-          ],
-        ),
-      ),
+    final isNetworkError = message.toLowerCase().contains('socket') ||
+        message.toLowerCase().contains('network') ||
+        message.toLowerCase().contains('connection');
+    return ErrorStateWidget(
+      message: message,
+      type: isNetworkError ? ErrorStateType.network : ErrorStateType.generic,
+      onRetry: () => ref.invalidate(productDetailProvider(widget.productId)),
     );
   }
 
@@ -549,59 +507,4 @@ class _QtyButton extends StatelessWidget {
   }
 }
 
-/// Simple animated shimmer placeholder box.
-class _Shimmer extends StatefulWidget {
-  final double width;
-  final double height;
-  final Color base;
-  final Color highlight;
-  final BorderRadius? radius;
 
-  const _Shimmer({
-    required this.width,
-    required this.height,
-    required this.base,
-    required this.highlight,
-    this.radius,
-  });
-
-  @override
-  State<_Shimmer> createState() => _ShimmerState();
-}
-
-class _ShimmerState extends State<_Shimmer>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  late Animation<double> _anim;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1100),
-    )..repeat(reverse: true);
-    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _anim,
-      builder: (context, _) => Container(
-        width: widget.width,
-        height: widget.height,
-        decoration: BoxDecoration(
-          color: Color.lerp(widget.base, widget.highlight, _anim.value),
-          borderRadius: widget.radius,
-        ),
-      ),
-    );
-  }
-}
