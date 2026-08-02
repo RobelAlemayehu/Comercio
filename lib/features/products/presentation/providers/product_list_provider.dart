@@ -56,3 +56,35 @@ class ProductListNotifier extends StateNotifier<AsyncValue<List<ProductModel>>> 
     }
   }
 }
+
+// ─── Category Providers ────────────────────────────────────────────────────────
+
+/// Provider for fetching categories list
+final categoriesProvider = FutureProvider<List<String>>((ref) async {
+  final repository = ref.watch(productRepositoryProvider);
+  final result = await repository.getCategories();
+  if (result is Success<List<String>>) {
+    return result.data;
+  } else if (result is Error<List<String>>) {
+    throw Exception(result.failure.message);
+  }
+  return [];
+});
+
+/// Holds currently selected category. Null represents "All" (no filter).
+final selectedCategoryProvider = StateProvider<String?>((ref) => null);
+
+/// Provides filtered products based on currently selected category.
+final filteredProductsProvider = Provider<AsyncValue<List<ProductModel>>>((ref) {
+  final productsAsync = ref.watch(productListProvider);
+  final selectedCategory = ref.watch(selectedCategoryProvider);
+
+  return productsAsync.whenData((products) {
+    if (selectedCategory == null || selectedCategory.isEmpty) {
+      return products;
+    }
+    return products
+        .where((p) => p.category.toLowerCase() == selectedCategory.toLowerCase())
+        .toList();
+  });
+});

@@ -4,6 +4,7 @@ import '../models/product_model.dart';
 
 abstract class ProductRemoteDataSource {
   Future<List<ProductModel>> getProducts();
+  Future<List<String>> getCategories();
 }
 
 class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
@@ -21,4 +22,14 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     }
     throw Exception('Invalid products list format received from server');
   }
+
+  @override
+  Future<List<String>> getCategories() async {
+    final response = await _apiClient.get(ApiEndpoints.categories);
+    if (response is List) {
+      return response.map((item) => item.toString()).toList();
+    }
+    throw Exception('Invalid categories list format received from server');
+  }
 }
+

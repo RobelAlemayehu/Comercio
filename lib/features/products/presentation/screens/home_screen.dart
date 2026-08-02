@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/loading_widget.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
-import '../../../../app/router/app_router.dart';
 import '../providers/product_list_provider.dart';
+import '../widgets/category_selector.dart';
 import '../widgets/product_card.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -15,7 +16,8 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final productState = ref.watch(productListProvider);
+    final filteredProductState = ref.watch(filteredProductsProvider);
+    final selectedCategory = ref.watch(selectedCategoryProvider);
     final theme = Theme.of(context);
     final width = MediaQuery.of(context).size.width;
 
@@ -49,60 +51,96 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: productState.when(
-        loading: () => const LoadingWidget(
-          message: 'Loading products from FakeStore...',
-        ),
-        error: (error, stackTrace) => ErrorStateWidget(
-          message: error.toString(),
-          onRetry: () {
-            ref.read(productListProvider.notifier).fetchProducts();
-          },
-        ),
-        data: (products) {
-          if (products.isEmpty) {
-            return RefreshIndicator(
-              onRefresh: () => ref.read(productListProvider.notifier).refresh(),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.7,
-                  child: const EmptyStateWidget(
-                    title: 'No Products Available',
-                    message: 'Check back later for new inventory.',
-                    icon: Icons.inventory_2_outlined,
-                  ),
-                ),
+      body: Column(
+        children: [
+          const SizedBox(height: AppSpacing.xs),
+          // Horizontal Category Chips
+          const CategorySelector(),
+          const SizedBox(height: AppSpacing.xs),
+          // Product Grid with smooth transition
+          Expanded(
+            child: filteredProductState.when(
+              loading: () => const LoadingWidget(
+                message: 'Loading products...',
               ),
-            );
-          }
+              error: (error, stackTrace) => ErrorStateWidget(
+                message: error.toString(),
+                onRetry: () {
+                  ref.read(productListProvider.notifier).fetchProducts();
+                  ref.invalidate(categoriesProvider);
+                },
+              ),
+              data: (products) {
+                if (products.isEmpty) {
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      await ref.read(productListProvider.notifier).refresh();
+                      ref.invalidate(categoriesProvider);
+                    },
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.55,
+                        child: Center(
+                          child: EmptyStateWidget(
+                            title: selectedCategory != null
+                                ? 'No products in "${selectedCategory[0].toUpperCase()}${selectedCategory.substring(1)}"'
+                                : 'No Products Available',
+                            message: selectedCategory != null
+                                ? 'Try selecting another category or clear the filter.'
+                                : 'Check back later for new inventory.',
+                            icon: Icons.inventory_2_outlined,
+                            action: selectedCategory != null
+                                ? OutlinedButton.icon(
+                                    onPressed: () {
+                                      ref.read(selectedCategoryProvider.notifier).state = null;
+                                    },
+                                    icon: const Icon(Icons.close_rounded, size: 16),
+                                    label: const Text('Clear Filter'),
+                                  )
+                                : null,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }
 
-          return RefreshIndicator(
-            onRefresh: () => ref.read(productListProvider.notifier).refresh(),
-            child: GridView.builder(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: products.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                childAspectRatio: 0.68,
-                crossAxisSpacing: AppSpacing.md,
-                mainAxisSpacing: AppSpacing.md,
-              ),
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return ProductCard(
-                  product: product,
-                  onTap: () {
-                    context.push(AppRoutes.productDetail(product.id));
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    await ref.read(productListProvider.notifier).refresh();
+                    ref.invalidate(categoriesProvider);
                   },
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: GridView.builder(
+                      key: ValueKey(selectedCategory ?? 'all_products'),
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: products.length,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        childAspectRatio: 0.68,
+                        crossAxisSpacing: AppSpacing.md,
+                        mainAxisSpacing: AppSpacing.md,
+                      ),
+                      itemBuilder: (context, index) {
+                        final product = products[index];
+                        return ProductCard(
+                          product: product,
+                          onTap: () {
+                            context.push(AppRoutes.productDetail(product.id));
+                          },
+                        );
+                      },
+                    ),
+                  ),
                 );
               },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 }
-
