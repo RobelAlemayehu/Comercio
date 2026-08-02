@@ -8,6 +8,7 @@ import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/loading_widget.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../cart/presentation/providers/cart_provider.dart';
 import '../providers/product_list_provider.dart';
 import '../widgets/category_selector.dart';
 import '../widgets/product_card.dart';
@@ -48,6 +49,24 @@ class HomeScreen extends ConsumerWidget {
           ],
         ),
         actions: [
+          IconButton(
+            icon: Consumer(
+              builder: (context, ref, child) {
+                final cartItemCount = ref.watch(cartTotalItemCountProvider);
+                return Badge(
+                  isLabelVisible: cartItemCount > 0,
+                  label: Text('$cartItemCount'),
+                  backgroundColor: AppColors.secondary,
+                  textColor: AppColors.primaryDark,
+                  child: const Icon(Icons.shopping_cart_outlined),
+                );
+              },
+            ),
+            tooltip: 'Shopping Cart',
+            onPressed: () {
+              context.push(AppRoutes.cart);
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout_rounded),
             tooltip: 'Logout',

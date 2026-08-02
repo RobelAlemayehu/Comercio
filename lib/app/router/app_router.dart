@@ -6,6 +6,7 @@ import '../../features/auth/presentation/providers/auth_state.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/products/presentation/screens/home_screen.dart';
 import '../../features/products/presentation/screens/product_detail_screen.dart';
+import '../../features/cart/presentation/screens/cart_screen.dart';
 
 abstract class AppRoutes {
   static const String home = '/';
@@ -52,6 +53,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
           return ProductDetailScreen(productId: id);
         },
+      ),
+      GoRoute(
+        path: AppRoutes.cart,
+        builder: (context, state) => const CartScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

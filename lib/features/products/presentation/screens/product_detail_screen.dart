@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../cart/presentation/providers/cart_provider.dart';
 import '../../data/models/product_model.dart';
 import '../providers/product_detail_provider.dart';
 
@@ -57,6 +59,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
   }
 
   void _handleAddToCart(ProductModel product) {
+    ref.read(cartNotifierProvider.notifier).addItem(product, quantity: _quantity);
     setState(() => _addedToCart = true);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -204,6 +207,26 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
             ),
           ),
           actions: [
+            Consumer(
+              builder: (context, ref, child) {
+                final cartItemCount = ref.watch(cartTotalItemCountProvider);
+                return Padding(
+                  padding: const EdgeInsets.only(right: 4.0),
+                  child: Badge(
+                    isLabelVisible: cartItemCount > 0,
+                    label: Text('$cartItemCount'),
+                    backgroundColor: AppColors.secondary,
+                    textColor: AppColors.primaryDark,
+                    offset: const Offset(-2, 2),
+                    child: _CircleButton(
+                      icon: Icons.shopping_cart_outlined,
+                      onTap: () => context.push(AppRoutes.cart),
+                      isDark: isDark,
+                    ),
+                  ),
+                );
+              },
+            ),
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: _CircleButton(
