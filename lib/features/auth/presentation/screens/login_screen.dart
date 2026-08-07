@@ -32,11 +32,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
-  void _fillDemoCredentials() {
-    _usernameController.text = 'mor_2314';
-    _passwordController.text = '83r5^_';
-  }
-
   Future<void> _submitLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -185,36 +180,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ),
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Demo Credentials:',
+                                  'Demo Credentials',
                                   style: theme.textTheme.labelMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                const SizedBox(height: AppSpacing.xxs),
+                                const SizedBox(height: AppSpacing.xs),
                                 Text(
-                                  'Username: mor_2314  |  Password: 83r5^_',
+                                  'Username: mor_2314',
                                   style: theme.textTheme.bodySmall,
                                 ),
-                                const SizedBox(height: AppSpacing.xs),
-                                InkWell(
-                                  onTap: _fillDemoCredentials,
-                                  borderRadius: AppRadius.borderSm,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: AppSpacing.sm,
-                                      vertical: AppSpacing.xxs,
-                                    ),
-                                    child: Text(
-                                      'Auto-fill Demo Credentials',
-                                      style: TextStyle(
-                                        color: theme.colorScheme.primary,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
+                                Text(
+                                  'Password: 83r5^_',
+                                  style: theme.textTheme.bodySmall,
                                 ),
                               ],
                             ),

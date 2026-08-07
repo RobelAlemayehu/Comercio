@@ -8,7 +8,6 @@ import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/widgets/animated_widgets.dart';
-import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/shimmer_widgets.dart';
@@ -82,64 +81,6 @@ class ProfileScreen extends ConsumerWidget {
                   );
                 }).toList(),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showSettingsDialog(BuildContext context, WidgetRef ref, dynamic user) {
-    final themeMode = ref.read(themeModeProvider);
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'Account & System Settings',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            ListTile(
-              leading: const Icon(Icons.person_outline_rounded, color: AppColors.primary),
-              title: const Text('Username'),
-              subtitle: Text('@${user.username}'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.phone_outlined, color: AppColors.primary),
-              title: const Text('Phone Number'),
-              subtitle: Text(user.phone),
-            ),
-            ListTile(
-              leading: const Icon(Icons.dark_mode_outlined, color: AppColors.primary),
-              title: const Text('Appearance'),
-              subtitle: Text(themeModeLabel(themeMode)),
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () {
-                Navigator.pop(context);
-                _showThemePicker(context, ref);
-              },
             ),
           ],
         ),
@@ -221,8 +162,14 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(userProfileProvider(userId));
+    final themeMode = ref.watch(themeModeProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final themeIcon = switch (themeMode) {
+      ThemeMode.light => Icons.light_mode_outlined,
+      ThemeMode.dark => Icons.dark_mode_outlined,
+      ThemeMode.system => Icons.brightness_auto_outlined,
+    };
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
@@ -239,14 +186,10 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ),
         actions: [
-          profileAsync.when(
-            data: (user) => IconButton(
-              icon: const Icon(Icons.settings_outlined, color: Colors.white),
-              tooltip: 'Settings',
-              onPressed: () => _showSettingsDialog(context, ref, user),
-            ),
-            loading: () => const SizedBox(),
-            error: (_, __) => const SizedBox(),
+          IconButton(
+            icon: Icon(themeIcon, color: Colors.white),
+            tooltip: 'Change theme',
+            onPressed: () => _showThemePicker(context, ref),
           ),
         ],
       ),
