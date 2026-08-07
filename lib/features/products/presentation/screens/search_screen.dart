@@ -116,7 +116,7 @@ class SearchScreen extends ConsumerWidget {
                       child: ProductCard(
                         product: product,
                         onTap: () {
-                          context.push(AppRoutes.productDetail(product.id));
+                          context.push(AppRoutes.searchProductDetail(product.id));
                         },
                       ),
                     );

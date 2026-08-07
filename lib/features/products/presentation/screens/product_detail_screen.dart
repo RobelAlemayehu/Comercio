@@ -178,7 +178,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen>
                     offset: const Offset(-2, 2),
                     child: _CircleButton(
                       icon: Icons.shopping_cart_outlined,
-                      onTap: () => context.push(AppRoutes.cart),
+                      onTap: () => context.go(AppRoutes.cart),
                       isDark: isDark,
                     ),
                   ),

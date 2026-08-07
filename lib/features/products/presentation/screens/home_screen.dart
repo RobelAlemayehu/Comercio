@@ -44,13 +44,7 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu_rounded, color: Colors.white),
-          tooltip: 'Menu',
-          onPressed: () {
-            AppSnackbar.info(context, 'Comercio Drawer Menu');
-          },
-        ),
+        automaticallyImplyLeading: false,
         title: const Text(
           'Comercio',
           style: TextStyle(

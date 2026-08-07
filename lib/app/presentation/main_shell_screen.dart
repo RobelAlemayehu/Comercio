@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
+import '../router/app_router.dart';
 
 class MainShellScreen extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
@@ -11,15 +12,47 @@ class MainShellScreen extends ConsumerWidget {
     required this.navigationShell,
   });
 
-  void _onItemTapped(int index) {
-    navigationShell.goBranch(
-      index,
-      initialLocation: index == navigationShell.currentIndex,
-    );
+  int _selectedIndexForLocation(String location) {
+    if (location.startsWith(AppRoutes.search) ||
+        location.startsWith('${AppRoutes.search}/')) {
+      return 1;
+    }
+    if (location.startsWith(AppRoutes.profile)) {
+      return 2;
+    }
+    return 0;
+  }
+
+  void _onItemTapped(int index, BuildContext context) {
+    final location = GoRouterState.of(context).uri.path;
+
+    if (index == _selectedIndexForLocation(location)) {
+      if (index == 0 && location != AppRoutes.home) {
+        context.go(AppRoutes.home);
+      } else if (index == 1 && location != AppRoutes.search) {
+        context.go(AppRoutes.search);
+      }
+      return;
+    }
+
+    switch (index) {
+      case 0:
+        context.go(AppRoutes.home);
+        break;
+      case 1:
+        context.go(AppRoutes.search);
+        break;
+      case 2:
+        context.go(AppRoutes.profile);
+        break;
+    }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final location = GoRouterState.of(context).uri.path;
+    final selectedIndex = _selectedIndexForLocation(location);
+
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
@@ -40,8 +73,8 @@ class MainShellScreen extends ConsumerWidget {
           ],
         ),
         child: BottomNavigationBar(
-          currentIndex: navigationShell.currentIndex,
-          onTap: _onItemTapped,
+          currentIndex: selectedIndex,
+          onTap: (index) => _onItemTapped(index, context),
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
           selectedItemColor: AppColors.secondary,

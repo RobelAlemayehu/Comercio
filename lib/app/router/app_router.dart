@@ -22,6 +22,8 @@ abstract class AppRoutes {
 
   /// Helper — builds a concrete path for navigation.
   static String productDetail(int id) => '/product/$id';
+
+  static String searchProductDetail(int id) => '/search/product/$id';
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -58,6 +60,20 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.home,
                 builder: (context, state) => const HomeScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'cart',
+                    builder: (context, state) => const CartScreen(),
+                  ),
+                  GoRoute(
+                    path: 'product/:id',
+                    builder: (context, state) {
+                      final id =
+                          int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+                      return ProductDetailScreen(productId: id);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -66,6 +82,16 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.search,
                 builder: (context, state) => const SearchScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'product/:id',
+                    builder: (context, state) {
+                      final id =
+                          int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+                      return ProductDetailScreen(productId: id);
+                    },
+                  ),
+                ],
               ),
             ],
           ),
@@ -78,17 +104,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             ],
           ),
         ],
-      ),
-      GoRoute(
-        path: AppRoutes.cart,
-        builder: (context, state) => const CartScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.productDetails,
-        builder: (context, state) {
-          final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
-          return ProductDetailScreen(productId: id);
-        },
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
