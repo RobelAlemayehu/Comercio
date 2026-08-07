@@ -6,6 +6,7 @@ import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/theme_provider.dart';
 import '../../../../core/widgets/animated_widgets.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_snackbar.dart';
@@ -22,7 +23,75 @@ class ProfileScreen extends ConsumerWidget {
     this.userId = 1,
   });
 
-  void _showSettingsDialog(BuildContext context, dynamic user) {
+  void _showThemePicker(BuildContext context, WidgetRef ref) {
+    final currentMode = ref.read(themeModeProvider);
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) => Padding(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              'Choose Appearance',
+              style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            RadioGroup<ThemeMode>(
+              groupValue: currentMode,
+              onChanged: (mode) async {
+                if (mode == null) return;
+                await ref.read(themeModeProvider.notifier).setThemeMode(mode);
+                if (sheetContext.mounted) {
+                  Navigator.pop(sheetContext);
+                }
+              },
+              child: Column(
+                children: ThemeMode.values.map((mode) {
+                  return RadioListTile<ThemeMode>(
+                    value: mode,
+                    title: Text(themeModeLabel(mode)),
+                    secondary: Icon(
+                      mode == ThemeMode.light
+                          ? Icons.light_mode_outlined
+                          : mode == ThemeMode.dark
+                              ? Icons.dark_mode_outlined
+                              : Icons.brightness_auto_outlined,
+                      color: AppColors.primary,
+                    ),
+                    activeColor: AppColors.secondary,
+                    contentPadding: EdgeInsets.zero,
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSettingsDialog(BuildContext context, WidgetRef ref, dynamic user) {
+    final themeMode = ref.read(themeModeProvider);
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -65,7 +134,12 @@ class ProfileScreen extends ConsumerWidget {
             ListTile(
               leading: const Icon(Icons.dark_mode_outlined, color: AppColors.primary),
               title: const Text('Appearance'),
-              subtitle: const Text('System Default'),
+              subtitle: Text(themeModeLabel(themeMode)),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () {
+                Navigator.pop(context);
+                _showThemePicker(context, ref);
+              },
             ),
           ],
         ),
@@ -169,7 +243,7 @@ class ProfileScreen extends ConsumerWidget {
             data: (user) => IconButton(
               icon: const Icon(Icons.settings_outlined, color: Colors.white),
               tooltip: 'Settings',
-              onPressed: () => _showSettingsDialog(context, user),
+              onPressed: () => _showSettingsDialog(context, ref, user),
             ),
             loading: () => const SizedBox(),
             error: (_, __) => const SizedBox(),
