@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/animated_widgets.dart';
 import '../../../../core/widgets/app_button.dart';
@@ -50,12 +51,23 @@ class CartScreen extends ConsumerWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text('My Cart'),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          'My Cart',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
         actions: [
           if (cartItems.isNotEmpty)
             IconButton(
-              icon: const Icon(Icons.delete_outline_rounded),
+              icon: const Icon(Icons.delete_outline_rounded, color: Colors.white),
               tooltip: 'Empty Cart',
               onPressed: () => _showEmptyCartConfirmation(context, ref),
             ),
@@ -216,16 +228,38 @@ class CartScreen extends ConsumerWidget {
                         const SizedBox(height: AppSpacing.lg),
 
                         // Checkout Button
-                        AppButton(
-                          text: 'Proceed to Checkout',
-                          variant: AppButtonVariant.primary,
-                          onPressed: () {
-                            ref.read(cartNotifierProvider.notifier).emptyCart();
-                            AppSnackbar.success(
-                              context,
-                              'Order placed successfully! 🎉',
-                            );
-                          },
+                        SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.secondary,
+                              foregroundColor: AppColors.primaryDark,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: AppRadius.borderMd,
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            onPressed: () {
+                              ref.read(cartNotifierProvider.notifier).emptyCart();
+                              AppSnackbar.success(
+                                context,
+                                'Order placed successfully! 🎉',
+                              );
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                Text('Proceed to Checkout'),
+                                SizedBox(width: AppSpacing.xs),
+                                Icon(Icons.arrow_forward_rounded, size: 20),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_radius.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/animated_widgets.dart';
 import '../../../../core/widgets/app_button.dart';
@@ -10,7 +11,6 @@ import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/shimmer_widgets.dart';
-import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
 import '../providers/product_list_provider.dart';
 import '../widgets/category_selector.dart';
@@ -41,18 +41,29 @@ class HomeScreen extends ConsumerWidget {
     final isLoadingProducts = productListState is AsyncLoading;
 
     return Scaffold(
+      backgroundColor: theme.brightness == Brightness.dark
+          ? AppColors.backgroundDark
+          : AppColors.backgroundLight,
       appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.shopping_bag_rounded,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            const Text('Comercio'),
-          ],
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.menu_rounded, color: Colors.white),
+          tooltip: 'Menu',
+          onPressed: () {
+            AppSnackbar.info(context, 'Comercio Drawer Menu');
+          },
         ),
+        title: const Text(
+          'Comercio',
+          style: TextStyle(
+            color: AppColors.secondary,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            letterSpacing: 0.5,
+          ),
+        ),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: Consumer(
@@ -60,33 +71,120 @@ class HomeScreen extends ConsumerWidget {
                 final cartItemCount = ref.watch(cartTotalItemCountProvider);
                 return Badge(
                   isLabelVisible: cartItemCount > 0,
-                  label: Text('$cartItemCount'),
+                  label: Text(
+                    '$cartItemCount',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   backgroundColor: AppColors.secondary,
                   textColor: AppColors.primaryDark,
-                  child: const Icon(Icons.shopping_cart_outlined),
+                  child: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
                 );
               },
             ),
             tooltip: 'Shopping Cart',
-            onPressed: () => context.push(AppRoutes.cart),
-          ),
-          IconButton(
-            icon: const Icon(Icons.person_outline_rounded),
-            tooltip: 'Profile',
-            onPressed: () => context.push(AppRoutes.profile),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            tooltip: 'Logout',
-            onPressed: () {
-              ref.read(authNotifierProvider.notifier).logout();
-            },
+            onPressed: () => context.go(AppRoutes.cart),
           ),
         ],
       ),
       body: Column(
         children: [
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: AppSpacing.sm),
+
+          // Hero Promotional Banner Card (Matching Design Spec)
+          if (!isSearching) ...[
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: AppRadius.borderXl,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'New Collection',
+                            style: TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Discover\nThe Best\nProducts',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          SizedBox(
+                            height: 34,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                ref.read(selectedCategoryProvider.notifier).state =
+                                    'electronics';
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.secondary,
+                                foregroundColor: AppColors.primaryDark,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: AppRadius.borderMd,
+                                ),
+                                textStyle: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              child: const Text('Shop Now'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+
+                    // Headphones Illustration / Image Container
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.headphones_rounded,
+                        size: 64,
+                        color: AppColors.secondary.withValues(alpha: 0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+
           const ProductSearchBar(),
           const SizedBox(height: AppSpacing.xs),
 

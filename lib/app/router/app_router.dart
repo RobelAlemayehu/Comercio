@@ -9,6 +9,8 @@ import '../../features/products/presentation/screens/product_detail_screen.dart'
 import '../../features/cart/presentation/screens/cart_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 
+import '../presentation/main_shell_screen.dart';
+
 abstract class AppRoutes {
   static const String home = '/';
   static const String login = '/login';
@@ -44,9 +46,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.login,
         builder: (context, state) => const LoginScreen(),
       ),
-      GoRoute(
-        path: AppRoutes.home,
-        builder: (context, state) => const HomeScreen(),
+      ShellRoute(
+        builder: (context, state, child) => MainShellScreen(child: child),
+        routes: [
+          GoRoute(
+            path: AppRoutes.home,
+            builder: (context, state) => const HomeScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.cart,
+            builder: (context, state) => const CartScreen(),
+          ),
+          GoRoute(
+            path: AppRoutes.profile,
+            builder: (context, state) => const ProfileScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.productDetails,
@@ -54,14 +69,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           final id = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
           return ProductDetailScreen(productId: id);
         },
-      ),
-      GoRoute(
-        path: AppRoutes.cart,
-        builder: (context, state) => const CartScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.profile,
-        builder: (context, state) => const ProfileScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

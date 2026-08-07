@@ -107,9 +107,9 @@ class CategorySelector extends ConsumerWidget {
           ),
         ),
 
-        // Horizontal category chips list
+        // Horizontal circular category list
         SizedBox(
-          height: 44,
+          height: 86,
           child: categoriesAsync.when(
             loading: () => const CategoryChipsSkeleton(),
             error: (error, _) => Padding(
@@ -139,7 +139,7 @@ class CategorySelector extends ConsumerWidget {
                 scrollDirection: Axis.horizontal,
                 itemCount: allChips.length,
                 separatorBuilder: (context, index) =>
-                    const SizedBox(width: AppSpacing.xs),
+                    const SizedBox(width: AppSpacing.md),
                 itemBuilder: (context, index) {
                   final category = allChips[index];
                   final isAll = index == 0;
@@ -148,7 +148,7 @@ class CategorySelector extends ConsumerWidget {
                       : selectedCategory?.toLowerCase() ==
                           category.toLowerCase();
 
-                  return _CategoryChip(
+                  return _CategoryItem(
                     label: isAll ? 'All' : _formatCategoryName(category),
                     icon: isAll ? Icons.grid_view_rounded : _getCategoryIcon(category),
                     isSelected: isSelected,
@@ -171,14 +171,14 @@ class CategorySelector extends ConsumerWidget {
   }
 }
 
-class _CategoryChip extends StatelessWidget {
+class _CategoryItem extends StatelessWidget {
   final String label;
   final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
   final bool isDark;
 
-  const _CategoryChip({
+  const _CategoryItem({
     required this.label,
     required this.icon,
     required this.isSelected,
@@ -188,78 +188,62 @@ class _CategoryChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeBg = AppColors.primary;
-    final activeFg = Colors.white;
-    final activeAccent = AppColors.secondary;
+    final activeCircleBg = AppColors.primary;
+    final activeIconColor = Colors.white;
+    final inactiveCircleBg = isDark ? AppColors.surfaceDark : const Color(0xFFF1F5F9);
+    final inactiveIconColor = isDark ? AppColors.textSecondaryDark : const Color(0xFF475569);
 
-    final inactiveBg = isDark ? AppColors.surfaceDark : Colors.white;
-    final inactiveFg =
-        isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
-    final inactiveBorder =
-        isDark ? AppColors.borderDark : AppColors.borderLight;
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeInOut,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: AppRadius.borderLg,
-          child: AnimatedContainer(
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(30),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
             duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.xs,
-            ),
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              color: isSelected ? activeBg : inactiveBg,
-              borderRadius: AppRadius.borderLg,
-              border: Border.all(
-                color: isSelected ? activeAccent : inactiveBorder,
-                width: isSelected ? 1.5 : 1.0,
-              ),
+              shape: BoxShape.circle,
+              color: isSelected ? activeCircleBg : inactiveCircleBg,
+              border: isSelected
+                  ? Border.all(color: AppColors.secondary, width: 2)
+                  : null,
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: activeBg.withValues(alpha: 0.25),
+                        color: AppColors.primary.withValues(alpha: 0.25),
                         blurRadius: 6,
                         offset: const Offset(0, 2),
                       ),
                     ]
                   : null,
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
-                  transitionBuilder: (child, anim) => ScaleTransition(
-                    scale: anim,
-                    child: child,
-                  ),
-                  child: Icon(
-                    icon,
-                    key: ValueKey('${label}_$isSelected'),
-                    size: 16,
-                    color: isSelected ? activeAccent : inactiveFg,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 250),
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? activeFg : inactiveFg,
-                  ),
-                  child: Text(label),
-                ),
-              ],
+            alignment: Alignment.center,
+            child: Icon(
+              icon,
+              size: 22,
+              color: isSelected ? activeIconColor : inactiveIconColor,
             ),
           ),
-        ),
+          const SizedBox(height: 6),
+          SizedBox(
+            width: 64,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected
+                    ? (isDark ? AppColors.secondary : AppColors.primary)
+                    : (isDark ? AppColors.textSecondaryDark : AppColors.textPrimaryLight),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
