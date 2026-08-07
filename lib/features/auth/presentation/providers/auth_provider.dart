@@ -3,20 +3,13 @@ import '../../../../core/network/dio_client.dart';
 import '../../../../core/repositories/base_repository.dart';
 import '../../../../core/storage/local_storage.dart';
 import '../../../cart/presentation/providers/cart_provider.dart';
-import '../../data/datasources/auth_remote_data_source.dart';
-import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
 import 'auth_state.dart';
 
-final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
-  final apiClient = ref.watch(apiClientProvider);
-  return AuthRemoteDataSourceImpl(apiClient);
-});
-
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  final remoteDataSource = ref.watch(authRemoteDataSourceProvider);
+  final apiClient = ref.watch(apiClientProvider);
   final localStorage = ref.watch(localStorageServiceProvider);
-  return AuthRepositoryImpl(remoteDataSource, localStorage);
+  return AuthRepository(apiClient, localStorage);
 });
 
 final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {

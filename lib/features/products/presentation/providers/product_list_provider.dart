@@ -1,18 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/dio_client.dart';
-import '../../data/datasources/product_remote_data_source.dart';
 import '../../data/models/product_model.dart';
-import '../../data/repositories/product_repository_impl.dart';
 import '../../domain/repositories/product_repository.dart';
 
-final productRemoteDataSourceProvider = Provider<ProductRemoteDataSource>((ref) {
-  final apiClient = ref.watch(apiClientProvider);
-  return ProductRemoteDataSourceImpl(apiClient);
-});
-
 final productRepositoryProvider = Provider<ProductRepository>((ref) {
-  final remoteDataSource = ref.watch(productRemoteDataSourceProvider);
-  return ProductRepositoryImpl(remoteDataSource);
+  final apiClient = ref.watch(apiClientProvider);
+  return ProductRepository(apiClient);
 });
 
 final productListProvider =
