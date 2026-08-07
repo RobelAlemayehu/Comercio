@@ -15,17 +15,15 @@ import '../../../cart/presentation/providers/cart_provider.dart';
 import '../providers/product_list_provider.dart';
 import '../widgets/category_selector.dart';
 import '../widgets/product_card.dart';
-import '../widgets/product_search_bar.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filteredProductState = ref.watch(filteredProductsProvider);
+    final filteredProductState = ref.watch(homeProductsProvider);
     final productListState = ref.watch(productListProvider);
     final selectedCategory = ref.watch(selectedCategoryProvider);
-    final searchQuery = ref.watch(searchQueryProvider);
     final width = MediaQuery.of(context).size.width;
     final theme = Theme.of(context);
 
@@ -36,7 +34,6 @@ class HomeScreen extends ConsumerWidget {
       crossAxisCount = 3;
     }
 
-    final isSearching = searchQuery.trim().isNotEmpty;
     final isFilteringCategory = selectedCategory != null;
     final isLoadingProducts = productListState is AsyncLoading;
 
@@ -91,8 +88,7 @@ class HomeScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.sm),
 
           // Hero Promotional Banner Card (Matching Design Spec)
-          if (!isSearching) ...[
-            Padding(
+          Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Container(
                 width: double.infinity,
@@ -182,11 +178,7 @@ class HomeScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.sm),
-          ],
-
-          const ProductSearchBar(),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: AppSpacing.sm),
 
           // Category chips — skeleton while products are loading
           AnimatedContent(
@@ -217,14 +209,7 @@ class HomeScreen extends ConsumerWidget {
                   String emptyTitle = 'No Products Available';
                   String emptyMessage = 'Check back later for new inventory.';
 
-                  if (isSearching && isFilteringCategory) {
-                    emptyTitle = 'No results for "$searchQuery"';
-                    emptyMessage =
-                        'No matching products found in "${selectedCategory[0].toUpperCase()}${selectedCategory.substring(1)}".';
-                  } else if (isSearching) {
-                    emptyTitle = 'No results for "$searchQuery"';
-                    emptyMessage = 'Check your spelling or try another search term.';
-                  } else if (isFilteringCategory) {
+                  if (isFilteringCategory) {
                     emptyTitle =
                         'No products in "${selectedCategory[0].toUpperCase()}${selectedCategory.substring(1)}"';
                     emptyMessage = 'Try selecting another category or clear the filter.';
@@ -244,21 +229,14 @@ class HomeScreen extends ConsumerWidget {
                           child: EmptyStateWidget(
                             title: emptyTitle,
                             message: emptyMessage,
-                            icon: isSearching
-                                ? Icons.search_off_rounded
-                                : Icons.inventory_2_outlined,
-                            action: (isSearching || isFilteringCategory)
+                            icon: Icons.inventory_2_outlined,
+                            action: isFilteringCategory
                                 ? AppButton(
-                                    text: isSearching && isFilteringCategory
-                                        ? 'Clear All Filters'
-                                        : isSearching
-                                            ? 'Clear Search'
-                                            : 'Clear Category Filter',
+                                    text: 'Clear Category Filter',
                                     icon: Icons.filter_alt_off_rounded,
                                     variant: AppButtonVariant.outline,
                                     width: 200,
                                     onPressed: () {
-                                      ref.read(searchQueryProvider.notifier).state = '';
                                       ref.read(selectedCategoryProvider.notifier).state = null;
                                     },
                                   )
@@ -282,9 +260,7 @@ class HomeScreen extends ConsumerWidget {
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
                     child: GridView.builder(
-                      key: ValueKey(
-                        '${selectedCategory ?? "all"}_${searchQuery.trim()}',
-                      ),
+                      key: ValueKey(selectedCategory ?? 'all'),
                       padding: const EdgeInsets.all(AppSpacing.md),
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: products.length,

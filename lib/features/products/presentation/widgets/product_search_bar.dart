@@ -7,7 +7,12 @@ import '../../../../core/theme/app_spacing.dart';
 import '../providers/product_list_provider.dart';
 
 class ProductSearchBar extends ConsumerStatefulWidget {
-  const ProductSearchBar({super.key});
+  final bool autofocus;
+
+  const ProductSearchBar({
+    super.key,
+    this.autofocus = false,
+  });
 
   @override
   ConsumerState<ProductSearchBar> createState() => _ProductSearchBarState();
@@ -68,6 +73,7 @@ class _ProductSearchBarState extends ConsumerState<ProductSearchBar> {
       ),
       child: TextField(
         controller: _controller,
+        autofocus: widget.autofocus,
         onChanged: _onSearchChanged,
         textInputAction: TextInputAction.search,
         style: TextStyle(

@@ -60,6 +60,36 @@ final selectedCategoryProvider = StateProvider<String?>((ref) => null);
 /// Holds current product search query string.
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
+/// Provides home products filtered by category only (no search).
+final homeProductsProvider = Provider<AsyncValue<List<ProductModel>>>((ref) {
+  final productsAsync = ref.watch(productListProvider);
+  final selectedCategory = ref.watch(selectedCategoryProvider);
+
+  return productsAsync.whenData((products) {
+    return products.where((p) {
+      return selectedCategory == null ||
+          selectedCategory.isEmpty ||
+          p.category.toLowerCase() == selectedCategory.toLowerCase();
+    }).toList();
+  });
+});
+
+/// Provides products filtered by search query only.
+final searchProductsProvider = Provider<AsyncValue<List<ProductModel>>>((ref) {
+  final productsAsync = ref.watch(productListProvider);
+  final searchQuery = ref.watch(searchQueryProvider).trim().toLowerCase();
+
+  return productsAsync.whenData((products) {
+    if (searchQuery.isEmpty) {
+      return const <ProductModel>[];
+    }
+
+    return products
+        .where((p) => p.title.toLowerCase().contains(searchQuery))
+        .toList();
+  });
+});
+
 /// Provides filtered products based on currently selected category and search query.
 final filteredProductsProvider = Provider<AsyncValue<List<ProductModel>>>((ref) {
   final productsAsync = ref.watch(productListProvider);
