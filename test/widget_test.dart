@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:comercio/app/app.dart';
-import 'package:comercio/core/storage/local_storage.dart';
+import 'package:comercio/app.dart';
+import 'package:comercio/storage.dart';
 
 void main() {
   testWidgets('Unauthenticated user sees Login screen', (WidgetTester tester) async {
